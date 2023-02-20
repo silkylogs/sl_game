@@ -1,0 +1,9 @@
+INCLUDEDIR=include
+LIBDIR=lib
+SOURCEDIR=src
+BUILDIR=build
+BUILDFLAGS := -Wall
+LINKFLAGS := -lSDL2
+
+all:
+	g++ -o $(BUILDIR)/game -I$(INCLUDEDIR) -L$(LIBDIR)  $(SOURCEDIR)/*.cpp $(BUILDFLAGS) $(LINKFLAGS)
