@@ -103,30 +103,17 @@ class GameWindow {
 			}
 		}
 
-		// Window keydown events
-		// TODO: MOVE THIS TO INPUT MANAGER
-		else if( e.type == SDL_KEYDOWN ){
-			switch( e.key.keysym.sym ){
-				// Enter/exit full screen on keypress
-				case SDLK_F12:
-				{
-					if( mFullScreen ){
-						SDL_SetWindowFullscreen( mWindow, SDL_FALSE );
-						mFullScreen = false;
-					} else {
-						SDL_SetWindowFullscreen( mWindow, SDL_TRUE );
-						mFullScreen = true;
-						mMinimized = true;
-					}
-					break;
-				}
-		
-				// Request exit
-				case SDLK_ESCAPE:
-				{
-					break;
-				}
-			}
+	}
+
+	void setFullScreen(){
+		std::cout << "setFullScreen() called\n";
+		if( mFullScreen ){
+			SDL_SetWindowFullscreen( mWindow, SDL_FALSE );
+			mFullScreen = false;
+		} else {
+			SDL_SetWindowFullscreen( mWindow, SDL_TRUE );
+			mFullScreen = true;
+			mMinimized = true;
 		}
 	}
 
