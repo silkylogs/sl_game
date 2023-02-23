@@ -9,24 +9,38 @@
 #include "GameWindow.hpp"
 #include "InputHandler.hpp"
 
+// Render the graphics "hello world"
+void renderGradient( SDL_Renderer* rend, GameWindow gw, int xOff, int yOff, int zOff ){
+	for( int y = 0; y < gw.getHeight(); ++y ){
+		for( int x = 0; x < gw.getWidth(); ++x ){
+			char r = (float)(x + xOff) / (float)gw.getWidth()  * (float)0xff;
+			char g = (float)(y + yOff) / (float)gw.getHeight() * (float)0xff;
+			char b = (float)(2 + zOff) / (float)10 * (float)0xff;
+			SDL_SetRenderDrawColor( rend, r, g, b, 0xff );
+			SDL_RenderDrawPoint( rend, x, y );
+	}}
+
+}
+
 class GameState {
 	public:
 	GameState(){
-		mHeight = 600;
-		mWidth = 800;
-		mWindowTitle = "Hello game";
+		mWindowTitle = "Hello world";
 		mGameRunning = true;
 		
-		
-		mGameWindow.init( mWindowTitle, mWidth, mHeight );
+		mGameWindow.init( mWindowTitle, 800, 600 );
 		mRenderer = mGameWindow.createRenderer( SDL_RENDERER_SOFTWARE ); 
 		
 		// Initialize and hook up commands
 		mQuitCommand.init( &mGameRunning );
 		mInputHandler.assignCommandToButton( SDLK_ESCAPE, &mQuitCommand ); 
-		
 		mToggleFullScreenCommand.init( &mGameWindow );
 		mInputHandler.assignCommandToButton( SDLK_F12, &mToggleFullScreenCommand );
+	
+		// test
+		mShiftGradientXPlusCmd.init( &xOff );
+		mInputHandler.assignCommandToButton( SDLK_d, &mShiftGradientXPlusCmd );
+		//
 	}
 
 	~GameState(){
@@ -49,8 +63,8 @@ class GameState {
 			}
 			
 			mGameWindow.handeEvent( mSdlEvent, mRenderer );
-			Command* cmd = mInputHandler.handleInput( mSdlEvent.key.keysym.sym );
-			if( cmd ) cmd->execute();
+			Command* inputCmd = mInputHandler.handleInput( mSdlEvent );
+			if( inputCmd ) cmd->execute();
 		}
 
 		// Draw on screen only when game isnt minimized
@@ -59,15 +73,8 @@ class GameState {
 			SDL_SetRenderDrawColor( mRenderer, 0xff, 0xff, 0xff, 0xff );
 			SDL_RenderClear( mRenderer );
 
-			// Render the graphics "hello world"
-			for( int y = 0; y < mGameWindow.getHeight(); ++y ){
-				for( int x = 0; x < mGameWindow.getWidth(); ++x ){
-					char r = (float)x / (float)mGameWindow.getWidth()  * (float)0xff;
-					char g = (float)y / (float)mGameWindow.getHeight() * (float)0xff;
-					char b = (float)2 / (float)10 * (float)0xff;
-					SDL_SetRenderDrawColor( mRenderer, r, g, b, 0xff );
-					SDL_RenderDrawPoint( mRenderer, x, y );
-			}}
+			// Test
+			renderGradient( mRenderer, mGameWindow, xOff, 0, 0 );
 			
 			SDL_RenderPresent( mRenderer );
 		}
@@ -79,11 +86,10 @@ class GameState {
 	InputHandler mInputHandler;
 		
 	std::string mWindowTitle;
-	int mWidth;
-	int mHeight;
 	SDL_Renderer* mRenderer;
 	SDL_Event mSdlEvent; 
 
+	// Commands
 	class QuitCommand: public Command {
 		public:
 		QuitCommand(){ mExitPtr = nullptr; }
@@ -107,7 +113,6 @@ class GameState {
 		bool* mExitPtr;
 	} mQuitCommand;
 
-	// Todo: make this not continously toggle on and off when button is held down
 	class ToggleFullScreen: public Command {
 		public:
 		ToggleFullScreen(){ mGameWindowPtr = nullptr; }
@@ -129,6 +134,31 @@ class GameState {
 		private:
 		GameWindow* mGameWindowPtr;
 	} mToggleFullScreenCommand;
+
+	// Temporary test classes used to test input latency, remove asap
+	// Things like these should be implemented through GameObjects
+	class ShiftGradientXPlusCmd: public Command {
+		public:
+		ShiftGradientXPlusCmd() { xpOff = nullptr; }
+
+		virtual void execute( void ) {
+			std::cout << "Moving right...\n";
+			if( xpOff ) *xpOff += 1;
+			else SDL_assert( 0 &&
+				"Warning! xpOff points to a null pointer" &&
+				"Did you forget to call init() before calling execute()?"
+			);
+		}
+		
+		void init( int* ip ){
+			SDL_assert( ip && "init() called with null ptr" );
+			xpOff = ip;
+		}
+
+		private:
+		int *xpOff;
+	} mShiftGradientXPlusCmd;
+	int xOff; // more test variables
 };
 
 #endif
