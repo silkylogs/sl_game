@@ -13,9 +13,9 @@
 void renderGradient( SDL_Renderer* rend, GameWindow gw, int xOff, int yOff, int zOff ){
 	for( int y = 0; y < gw.getHeight(); ++y ){
 		for( int x = 0; x < gw.getWidth(); ++x ){
-			char r = (float)(x + xOff) / (float)gw.getWidth()  * (float)0xff;
-			char g = (float)(y + yOff) / (float)gw.getHeight() * (float)0xff;
-			char b = (float)(2 + zOff) / (float)10 * (float)0xff;
+			char r = (float)(x - xOff) / (float)gw.getWidth()  * (float)0xff;
+			char g = (float)(y - yOff) / (float)gw.getHeight() * (float)0xff;
+			char b = (float)(2 - zOff) / (float)10 * (float)0xff;
 			SDL_SetRenderDrawColor( rend, r, g, b, 0xff );
 			SDL_RenderDrawPoint( rend, x, y );
 	}}
@@ -64,7 +64,7 @@ class GameState {
 			
 			mGameWindow.handeEvent( mSdlEvent, mRenderer );
 			Command* inputCmd = mInputHandler.handleInput( mSdlEvent );
-			if( inputCmd ) cmd->execute();
+			if( inputCmd ) inputCmd->execute();
 		}
 
 		// Draw on screen only when game isnt minimized
