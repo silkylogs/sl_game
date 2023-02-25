@@ -5,15 +5,10 @@
 
 #include "Command.hpp"
 #include "GameWindow.hpp"
-#include "GameState.hpp"
-
-bool g_gameRunning = true;
-
-// todo: make the new input manager quits the game normally
-// without resorting to cmd + q
+#include "GameMain.hpp"
 
 int main( void ){
-	GameState gs;
+	GameMain gs;
 	while( gs.isGameRunning() ){
 		gs.update();
 	}

@@ -37,23 +37,12 @@ class InputHandler {
 
 	// Note: Add SDL_KeyboardEvent to allow keydown events
 	Command* handleInput( SDL_Event e ){
-		Command* retCmd = mButtonNull;
-	
-		// Single press key	
-		#define HANDLE_SINGLEPRESS_INPUT( KEYCODE, RETCMD ) case KEYCODE: return RETCMD; break;
-		if( e.type == SDL_KEYDOWN ){
-			switch( e.key.keysym.sym ){
-				HANDLE_SINGLEPRESS_INPUT( SDLK_ESCAPE, mButtonEsc )
-				HANDLE_SINGLEPRESS_INPUT( SDLK_F12, mButtonF12 )
-				default: { retCmd = mButtonNull; } break;
-		}}
-		#undef HANDLE_SINGLEPRESS_INPUT
-
 		// Continous response keys
 		SDL_PumpEvents();
 		const Uint8* sdlKeyState = SDL_GetKeyboardState(NULL);
 
-		#define HANDLE_CONTINIOUS_INPUT( KEYSTATE_ARRAY, SCANCODE, BUTTON ) if(KEYSTATE_ARRAY[SCANCODE])return BUTTON;
+		#define HANDLE_CONTINIOUS_INPUT( KEYSTATE_ARRAY, SCANCODE, BUTTON ) \
+			if(KEYSTATE_ARRAY[SCANCODE])return BUTTON;
 		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_W, mButtonW );
 		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_S, mButtonS );
 		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_A, mButtonA );
@@ -61,7 +50,18 @@ class InputHandler {
 		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_SPACE, mButtonSpace );
 		#undef HANDLE_CONTINIOUS_INPUT		
 
-		return retCmd;
+		// Single press key	
+		#define HANDLE_SINGLEPRESS_INPUT( KEYCODE, RETCMD ) \
+			 case KEYCODE: return RETCMD; break;
+		if( e.type == SDL_KEYDOWN ){
+			switch( e.key.keysym.sym ){
+				HANDLE_SINGLEPRESS_INPUT( SDLK_ESCAPE, mButtonEsc )
+				HANDLE_SINGLEPRESS_INPUT( SDLK_F12, mButtonF12 )
+				default: { return mButtonNull; } break;
+		}}
+		#undef HANDLE_SINGLEPRESS_INPUT
+
+		return mButtonNull;
 	}
 
 	// Assigns a SDLK_Keycode to one of the private buttons

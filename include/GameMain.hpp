@@ -1,5 +1,5 @@
-#ifndef GAME_STATE_HEADER_INCLUDED
-#define GAME_STATE_HEADER_INCLUDED
+#ifndef GAME_MAIN_HEADER_INCLUDED
+#define GAME_MAIN_HEADER_INCLUDED
 
 #include <iostream>
 #include <string>
@@ -22,9 +22,9 @@ void renderGradient( SDL_Renderer* rend, GameWindow gw, int xOff, int yOff, int 
 
 }
 
-class GameState {
+class GameMain {
 	public:
-	GameState(){
+	GameMain(){
 		mWindowTitle = "Hello world";
 		mGameRunning = true;
 		
@@ -43,8 +43,8 @@ class GameState {
 		//
 	}
 
-	~GameState(){
-		std::cout << "GameState destructor called\n";
+	~GameMain(){
+		std::cout << "GameMain destructor called\n";
 		SDL_DestroyRenderer( mRenderer );
 		mGameWindow.free();
 		SDL_Quit();

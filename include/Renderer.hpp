@@ -1,0 +1,8 @@
+#ifndef GAME_RENDERER_HEADER_INCLUDED
+#define GAME_RENDERER_HEADER_INCLUDED
+
+#include <SDL2/SDL.h>
+
+
+
+#endif
