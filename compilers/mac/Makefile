@@ -6,7 +6,7 @@ INCLUDEDIR = include
 LIBDIR = lib/mac/
 SOURCEDIR = src
 BUILDIR = build
-BUILDFLAGS := -Wall
+BUILDFLAGS := -Wall -std=c++11
 LINKFLAGS := -lSDL2
 
 all:

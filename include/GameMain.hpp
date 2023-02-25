@@ -1,6 +1,8 @@
 #ifndef GAME_MAIN_HEADER_INCLUDED
 #define GAME_MAIN_HEADER_INCLUDED
 
+// todo: and also implement the renderer class
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -8,6 +10,7 @@
 
 #include "GameWindow.hpp"
 #include "InputHandler.hpp"
+#include "Renderer.hpp"
 
 // Render the graphics "hello world"
 void renderGradient( SDL_Renderer* rend, GameWindow gw, int xOff, int yOff, int zOff ){
@@ -24,28 +27,38 @@ void renderGradient( SDL_Renderer* rend, GameWindow gw, int xOff, int yOff, int 
 
 class GameMain {
 	public:
-	GameMain(){
+	GameMain():
+		// Game systems
+		mWindowTitle{"Hello world"},
+		mSdlEvent{},
+		
+		mGameRunning{ true },
+		mGameWindow{ mWindowTitle, 800, 600 },
+		mGameRenderer{ mGameWindow.getWindow(), SDL_RENDERER_SOFTWARE },
+		
+		// Game commands
+		mQuitCommand             { mGameRunning },
+		mToggleFullScreenCommand { mGameWindow },
+
+		// The input handler
+		mInputHandler{}
+
+	{
 		mWindowTitle = "Hello world";
 		mGameRunning = true;
 		
-		mGameWindow.init( mWindowTitle, 800, 600 );
-		mRenderer = mGameWindow.createRenderer( SDL_RENDERER_SOFTWARE ); 
-		
-		// Initialize and hook up commands
-		mQuitCommand.init( &mGameRunning );
+		// Hook up commands to the input handler
 		mInputHandler.assignCommandToButton( SDLK_ESCAPE, &mQuitCommand ); 
-		mToggleFullScreenCommand.init( &mGameWindow );
 		mInputHandler.assignCommandToButton( SDLK_F12, &mToggleFullScreenCommand );
 	
 		// test
-		mShiftGradientXPlusCmd.init( &xOff );
-		mInputHandler.assignCommandToButton( SDLK_d, &mShiftGradientXPlusCmd );
+			mShiftGradientXPlusCmd.init( &xOff );
+			mInputHandler.assignCommandToButton( SDLK_d, &mShiftGradientXPlusCmd );
 		//
 	}
 
 	~GameMain(){
 		std::cout << "GameMain destructor called\n";
-		SDL_DestroyRenderer( mRenderer );
 		mGameWindow.free();
 		SDL_Quit();
 	}
@@ -62,79 +75,58 @@ class GameMain {
 				mGameRunning = false;
 			}
 			
-			mGameWindow.handeEvent( mSdlEvent, mRenderer );
+			mGameWindow.handleEvent( mSdlEvent, mGameRenderer.getRenderer() );
 			Command* inputCmd = mInputHandler.handleInput( mSdlEvent );
 			if( inputCmd ) inputCmd->execute();
 		}
 
 		// Draw on screen only when game isnt minimized
 		if( !mGameWindow.isMinimized() ) {
-			// Clear the screen
-			SDL_SetRenderDrawColor( mRenderer, 0xff, 0xff, 0xff, 0xff );
-			SDL_RenderClear( mRenderer );
-
-			// Test
-			renderGradient( mRenderer, mGameWindow, xOff, 0, 0 );
-			
-			SDL_RenderPresent( mRenderer );
+			mGameRenderer.clearScreen();
+			renderGradient( mGameRenderer.getRenderer(), mGameWindow, xOff, 0, 0 );
+			mGameRenderer.renderPresent();
 		}
 	}
 
 	private:
-	bool mGameRunning;
-	GameWindow mGameWindow;
-	InputHandler mInputHandler;
+	std::string     mWindowTitle;
+	SDL_Event       mSdlEvent; 
+	
+	bool            mGameRunning;
+	GameWindow      mGameWindow;
+	Renderer        mGameRenderer;
 		
-	std::string mWindowTitle;
-	SDL_Renderer* mRenderer;
-	SDL_Event mSdlEvent; 
 
 	// Commands
 	class QuitCommand: public Command {
 		public:
-		QuitCommand(){ mExitPtr = nullptr; }
+		QuitCommand( bool& exitRef ): mExitRef{ exitRef } {}
 
 		virtual void execute( void ) {
-			std::cout << "Quitting normally...\n";
-			if( mExitPtr ) *mExitPtr = false;
-			else SDL_assert( 0 &&
-				"Warning! QuitCommand points to a null pointer" &&
-				"Did you forget to call init() before calling execute()?"
-			);
-		}
-
-		// Because parameterized constructors dont work in this accursed land
-		void init( bool* grb ){
-			SDL_assert( grb && "QuitCommand.init() called with null ptr" );
-			mExitPtr = grb;
+			mExitRef = false;
 		}
 
 		private:
-		bool* mExitPtr;
+		bool& mExitRef;
 	} mQuitCommand;
 
-	class ToggleFullScreen: public Command {
+	class ToggleFullScreenCommand: public Command {
 		public:
-		ToggleFullScreen(){ mGameWindowPtr = nullptr; }
+		ToggleFullScreenCommand( GameWindow& gameWindowRef ): mGameWindowRef{ gameWindowRef } {}
 
-		virtual void execute( void ) {
+		virtual void execute( void ){
 			std::cout << "Entering fullscreen...\n";
-			if( mGameWindowPtr ) mGameWindowPtr->setFullScreen();	
-			else SDL_assert( 0 &&
-				"Warning! ToggleFullScreen points to a null pointer" &&
-				"Did you forget to call init() before calling execute()?"
-			);
-		}
-		
-		void init( GameWindow* gwp ){
-			SDL_assert( gwp && "ToggleFullScreen.init() called with null ptr" );
-			mGameWindowPtr = gwp;
+			mGameWindowRef.setFullScreen();
 		}
 
 		private:
-		GameWindow* mGameWindowPtr;
+		GameWindow& mGameWindowRef;
 	} mToggleFullScreenCommand;
+	
+	InputHandler    mInputHandler;
 
+
+	
 	// Temporary test classes used to test input latency, remove asap
 	// Things like these should be implemented through GameObjects
 	class ShiftGradientXPlusCmd: public Command {
@@ -159,6 +151,7 @@ class GameMain {
 		int *xpOff;
 	} mShiftGradientXPlusCmd;
 	int xOff; // more test variables
+	
 };
 
 #endif

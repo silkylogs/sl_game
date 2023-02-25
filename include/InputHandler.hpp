@@ -24,66 +24,25 @@ class NullCommand : public Command {
  */
 class InputHandler {
 	public:
-	InputHandler(){
-		mButtonEsc  = &g_nullCommand;
-		mButtonNull = &g_nullCommand;
-		mButtonF12  = &g_nullCommand;
-		Command* mButtonW = &g_nullCommand;
-		Command* mButtonS = &g_nullCommand;
-		Command* mButtonA = &g_nullCommand;
-		Command* mButtonD = &g_nullCommand;
-		Command* mButtonSpace = &g_nullCommand;
-	}
+	InputHandler():
+		mButtonNull  { &g_nullCommand },
+		mButtonEsc   { mButtonNull },
+		mButtonF12   { mButtonNull },
+		mButtonW     { mButtonNull },
+		mButtonS     { mButtonNull },
+		mButtonA     { mButtonNull },
+		mButtonD     { mButtonNull },
+		mButtonSpace { mButtonNull } {}
 
 	// Note: Add SDL_KeyboardEvent to allow keydown events
-	Command* handleInput( SDL_Event e ){
-		// Continous response keys
-		SDL_PumpEvents();
-		const Uint8* sdlKeyState = SDL_GetKeyboardState(NULL);
-
-		#define HANDLE_CONTINIOUS_INPUT( KEYSTATE_ARRAY, SCANCODE, BUTTON ) \
-			if(KEYSTATE_ARRAY[SCANCODE])return BUTTON;
-		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_W, mButtonW );
-		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_S, mButtonS );
-		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_A, mButtonA );
-		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_D, mButtonD );
-		HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_SPACE, mButtonSpace );
-		#undef HANDLE_CONTINIOUS_INPUT		
-
-		// Single press key	
-		#define HANDLE_SINGLEPRESS_INPUT( KEYCODE, RETCMD ) \
-			 case KEYCODE: return RETCMD; break;
-		if( e.type == SDL_KEYDOWN ){
-			switch( e.key.keysym.sym ){
-				HANDLE_SINGLEPRESS_INPUT( SDLK_ESCAPE, mButtonEsc )
-				HANDLE_SINGLEPRESS_INPUT( SDLK_F12, mButtonF12 )
-				default: { return mButtonNull; } break;
-		}}
-		#undef HANDLE_SINGLEPRESS_INPUT
-
-		return mButtonNull;
-	}
+	Command* handleInput( SDL_Event );
 
 	// Assigns a SDLK_Keycode to one of the private buttons
-	void assignCommandToButton( SDL_Keycode keyCode, Command* cmd ){
-		#define ASSIGN_CMD_TO_BUTTON( KEYCODE, BUTTON ) case KEYCODE: { BUTTON = cmd; } break;
-
-		switch( keyCode ) {
-			ASSIGN_CMD_TO_BUTTON( SDLK_ESCAPE, mButtonEsc )
-			ASSIGN_CMD_TO_BUTTON( SDLK_F12, mButtonF12 )
-			ASSIGN_CMD_TO_BUTTON( SDLK_w, mButtonW )
-			ASSIGN_CMD_TO_BUTTON( SDLK_s, mButtonS )
-			ASSIGN_CMD_TO_BUTTON( SDLK_a, mButtonA )
-			ASSIGN_CMD_TO_BUTTON( SDLK_d, mButtonD )
-			ASSIGN_CMD_TO_BUTTON( SDLK_SPACE, mButtonSpace )
-			default: { mButtonNull = cmd; } break;
-		}
-
-		#undef ASSIGN_CMD_TO_BUTTON
-	}
+	void assignCommandToButton( SDL_Keycode, Command* );
 
 	// The buttons supported by the game
 	private:
+	Command* mButtonNull;
 	Command* mButtonEsc;
 	Command* mButtonF12;
 	Command* mButtonW;
@@ -91,7 +50,55 @@ class InputHandler {
 	Command* mButtonA;
 	Command* mButtonD;
 	Command* mButtonSpace;
-	Command* mButtonNull;
 };
+
+Command* InputHandler::handleInput( SDL_Event e ){
+	// Continous response keys
+	SDL_PumpEvents();
+	const Uint8* sdlKeyState = SDL_GetKeyboardState(NULL);
+
+	#define HANDLE_CONTINIOUS_INPUT( KEYSTATE_ARRAY, SCANCODE, BUTTON ) \
+		if(KEYSTATE_ARRAY[SCANCODE])return BUTTON;
+	
+	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_W, mButtonW );
+	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_S, mButtonS );
+	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_A, mButtonA );
+	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_D, mButtonD );
+	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_SPACE, mButtonSpace );
+	
+	#undef HANDLE_CONTINIOUS_INPUT		
+
+
+	// Single press key	
+	#define HANDLE_SINGLEPRESS_INPUT( KEYCODE, RETCMD ) case KEYCODE: return RETCMD; break;
+	
+	if( e.type == SDL_KEYDOWN ){
+		switch( e.key.keysym.sym ){
+			HANDLE_SINGLEPRESS_INPUT( SDLK_ESCAPE, mButtonEsc )
+			HANDLE_SINGLEPRESS_INPUT( SDLK_F12, mButtonF12 )
+			default: { return mButtonNull; } break;
+	}}
+	
+	#undef HANDLE_SINGLEPRESS_INPUT
+
+	return mButtonNull;
+}
+
+void InputHandler::assignCommandToButton( SDL_Keycode keyCode, Command* button ){
+	#define ASSIGN_CMD_TO_BUTTON( KEYCODE, BUTTON ) case KEYCODE: { BUTTON = button; } break;
+
+	switch( keyCode ) {
+		ASSIGN_CMD_TO_BUTTON( SDLK_ESCAPE, mButtonEsc )
+		ASSIGN_CMD_TO_BUTTON( SDLK_F12, mButtonF12 )
+		ASSIGN_CMD_TO_BUTTON( SDLK_w, mButtonW )
+		ASSIGN_CMD_TO_BUTTON( SDLK_s, mButtonS )
+		ASSIGN_CMD_TO_BUTTON( SDLK_a, mButtonA )
+		ASSIGN_CMD_TO_BUTTON( SDLK_d, mButtonD )
+		ASSIGN_CMD_TO_BUTTON( SDLK_SPACE, mButtonSpace )
+		//default: { mButtonNull = button; } break;
+	}
+
+	#undef ASSIGN_CMD_TO_BUTTON
+}
 
 #endif

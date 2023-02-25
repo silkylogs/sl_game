@@ -1,10 +1,6 @@
 #include <iostream>
-#include <string>
-#include <sstream>
 #include <SDL2/SDL.h>
 
-#include "Command.hpp"
-#include "GameWindow.hpp"
 #include "GameMain.hpp"
 
 int main( void ){
