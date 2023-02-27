@@ -1,7 +1,8 @@
 #ifndef GAME_MAIN_HEADER_INCLUDED
 #define GAME_MAIN_HEADER_INCLUDED
 
-// todo: and also implement the renderer class
+// Todo: convert project to C (ANSI if possible)
+// Todo: make input async via multithreading
 
 #include <iostream>
 #include <string>
@@ -13,50 +14,28 @@
 #include "Renderer.hpp"
 
 // Render the graphics "hello world"
-void renderGradient( SDL_Renderer* rend, GameWindow gw, int xOff, int yOff, int zOff ){
-	for( int y = 0; y < gw.getHeight(); ++y ){
-		for( int x = 0; x < gw.getWidth(); ++x ){
-			char r = (float)(x - xOff) / (float)gw.getWidth()  * (float)0xff;
-			char g = (float)(y - yOff) / (float)gw.getHeight() * (float)0xff;
-			char b = (float)(2 - zOff) / (float)10 * (float)0xff;
+void renderGradient(
+	SDL_Renderer* rend,
+	GameWindow gw,
+	int xOff, int yOff, int zOff
+){
+	int x=0;
+	int y=0;
+	for(y=0;y<gw.getHeight();++y){
+		for(x=0;x<gw.getWidth();++x){
+			char r =
+			(float)(x-xOff)/(float)gw.getWidth()*(float)0xff;
+			char g =
+			(float)(y-yOff)/(float)gw.getHeight()*(float)0xff;
+			char b =
+			(float)(2-zOff)/(float)10*(float)0xff;
+
 			SDL_SetRenderDrawColor( rend, r, g, b, 0xff );
 			SDL_RenderDrawPoint( rend, x, y );
-	}}
+}}}
 
-}
-
-class GameMain {
+struct GameMain {
 	public:
-	GameMain():
-		// Game systems
-		mWindowTitle{"Hello world"},
-		mSdlEvent{},
-		
-		mGameRunning{ true },
-		mGameWindow{ mWindowTitle, 800, 600 },
-		mGameRenderer{ mGameWindow.getWindow(), SDL_RENDERER_SOFTWARE },
-		
-		// Game commands
-		mQuitCommand             { mGameRunning },
-		mToggleFullScreenCommand { mGameWindow },
-
-		// The input handler
-		mInputHandler{}
-
-	{
-		mWindowTitle = "Hello world";
-		mGameRunning = true;
-		
-		// Hook up commands to the input handler
-		mInputHandler.assignCommandToButton( SDLK_ESCAPE, &mQuitCommand ); 
-		mInputHandler.assignCommandToButton( SDLK_F12, &mToggleFullScreenCommand );
-	
-		// test
-			mShiftGradientXPlusCmd.init( &xOff );
-			mInputHandler.assignCommandToButton( SDLK_d, &mShiftGradientXPlusCmd );
-		//
-	}
-
 	~GameMain(){
 		std::cout << "GameMain destructor called\n";
 		mGameWindow.free();
@@ -88,7 +67,7 @@ class GameMain {
 		}
 	}
 
-	private:
+	public:
 	std::string     mWindowTitle;
 	SDL_Event       mSdlEvent; 
 	
@@ -100,27 +79,27 @@ class GameMain {
 	// Commands
 	class QuitCommand: public Command {
 		public:
-		QuitCommand( bool& exitRef ): mExitRef{ exitRef } {}
+		void init( bool* exitRef ){ mExitRef = exitRef; };
 
 		virtual void execute( void ) {
-			mExitRef = false;
+			*mExitRef = false;
 		}
 
-		private:
-		bool& mExitRef;
+		bool* mExitRef;
 	} mQuitCommand;
 
 	class ToggleFullScreenCommand: public Command {
 		public:
-		ToggleFullScreenCommand( GameWindow& gameWindowRef ): mGameWindowRef{ gameWindowRef } {}
+		void init( GameWindow* gameWindowRef ){
+			mGameWindowRef = gameWindowRef;
+		}
 
 		virtual void execute( void ){
 			std::cout << "Entering fullscreen...\n";
-			mGameWindowRef.setFullScreen();
+			mGameWindowRef->setFullScreen();
 		}
 
-		private:
-		GameWindow& mGameWindowRef;
+		GameWindow* mGameWindowRef;
 	} mToggleFullScreenCommand;
 	
 	InputHandler    mInputHandler;
@@ -153,5 +132,31 @@ class GameMain {
 	int xOff; // more test variables
 	
 };
+
+void GameMain_init( GameMain* gameMain ) {
+	// Game systems
+	gameMain->mGameRunning = true;
+	gameMain->mGameWindow.init(gameMain->mWindowTitle, 800, 600);
+	gameMain->mGameRenderer.init(gameMain->mGameWindow.getWindow(), SDL_RENDERER_SOFTWARE);
+	
+	// Game commands
+	gameMain->mQuitCommand             .init(&gameMain->mGameRunning);
+	gameMain->mToggleFullScreenCommand .init(&gameMain->mGameWindow);
+
+	// The input handler
+	gameMain->mInputHandler.init();//conv ctor
+
+	gameMain->mWindowTitle = "Hello world";
+	gameMain->mGameRunning = true;
+		
+	// Hook up commands to the input handler
+	gameMain->mInputHandler.assignCommandToButton(SDLK_ESCAPE,&gameMain->mQuitCommand); 
+	gameMain->mInputHandler.assignCommandToButton(SDLK_F12,&gameMain->mToggleFullScreenCommand );
+	
+	// test
+	gameMain->mShiftGradientXPlusCmd.init( &gameMain->xOff );
+	gameMain->mInputHandler.assignCommandToButton( SDLK_d, &gameMain->mShiftGradientXPlusCmd );
+	//
+	}
 
 #endif

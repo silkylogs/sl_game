@@ -24,15 +24,16 @@ class NullCommand : public Command {
  */
 class InputHandler {
 	public:
-	InputHandler():
-		mButtonNull  { &g_nullCommand },
-		mButtonEsc   { mButtonNull },
-		mButtonF12   { mButtonNull },
-		mButtonW     { mButtonNull },
-		mButtonS     { mButtonNull },
-		mButtonA     { mButtonNull },
-		mButtonD     { mButtonNull },
-		mButtonSpace { mButtonNull } {}
+	void init(){
+		mButtonNull  = &g_nullCommand ;
+		mButtonEsc   = mButtonNull ;
+		mButtonF12   = mButtonNull ;
+		mButtonW     = mButtonNull ;
+		mButtonS     = mButtonNull ;
+		mButtonA     = mButtonNull ;
+		mButtonD     = mButtonNull ;
+		mButtonSpace = mButtonNull ;
+	}
 
 	// Note: Add SDL_KeyboardEvent to allow keydown events
 	Command* handleInput( SDL_Event );

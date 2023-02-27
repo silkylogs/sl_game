@@ -6,8 +6,8 @@
 class Renderer {
 	public:
 	// Initializes internal renderer with the valid SDL_Window pointer 
-	Renderer( SDL_Window*, SDL_RendererFlags );
-	~Renderer();
+	void init( SDL_Window*, SDL_RendererFlags );
+	void dtor();
 	
 	void clearScreen();
 	void renderPresent();
@@ -19,14 +19,14 @@ class Renderer {
 	SDL_Renderer* mRenderer;
 };
 
-Renderer::Renderer( SDL_Window* w, SDL_RendererFlags renderFlags ) {
+void Renderer::init( SDL_Window* w, SDL_RendererFlags renderFlags ) {
 	SDL_assert( w && "Warning: SDL_Window pointer is null" );
 	
 	mRenderer = SDL_CreateRenderer( w, -1, renderFlags );
 	SDL_assert( mRenderer && "Unable to create renderer" );
 }
 
-Renderer::~Renderer(){
+void Renderer::dtor(){
 	SDL_DestroyRenderer( mRenderer );
 	mRenderer = nullptr;
 }

@@ -5,6 +5,7 @@
 
 int main( void ){
 	GameMain gs;
+	GameMain_init(&gs);
 	while( gs.isGameRunning() ){
 		gs.update();
 	}

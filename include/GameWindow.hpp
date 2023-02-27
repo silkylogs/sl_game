@@ -20,7 +20,7 @@ class GameWindow {
 	bool mMinimized;
 
 	public:
-	GameWindow( std::string& windowTitle, int wWidth, int wHeight );
+	void init( std::string& windowTitle, int wWidth, int wHeight );
 
 	// Handles window events
 	void handleEvent( SDL_Event& e, SDL_Renderer* renderer );
@@ -42,15 +42,15 @@ class GameWindow {
 	SDL_Window* getWindow() { return mWindow; }
 };
 
-GameWindow::GameWindow( std::string& windowTitle, int wWidth, int wHeight ):
-	mWindow        { nullptr },
-	mWidth         { wWidth },
-	mHeight        { wHeight },
-	mMouseFocus    { false },
-	mKeyboardFocus { false },
-	mFullScreen    { false },
-	mMinimized     { false }
-{
+void GameWindow::init( std::string& windowTitle, int wWidth, int wHeight ){
+	mWindow        = nullptr ;
+	mWidth         = wWidth ;
+	mHeight        = wHeight;
+	mMouseFocus    = false ;
+	mKeyboardFocus = false ;
+	mFullScreen    = false ;
+	mMinimized     = false ;
+
 	if( mWidth <= 0 ) {
 		std::cerr
 			<< "Argument has an invalid window width. (x == "
