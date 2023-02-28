@@ -34,40 +34,19 @@ void renderGradient(
 			SDL_RenderDrawPoint( rend, x, y );
 }}}
 
+// Commands
+class QuitCommand: public Command {
+	public:
+	void ctor( bool* exitRef ){ mExitRef = exitRef; };
+
+	virtual void execute( void ) {
+		*mExitRef = false;
+	}
+
+	bool* mExitRef;
+};
+
 struct GameMain {
-	public:
-	~GameMain(){
-		std::cout << "GameMain destructor called\n";
-		mGameWindow.free();
-		SDL_Quit();
-	}
-	
-	bool isGameRunning(){ return mGameRunning; }
-
-	// This is to run every frame
-	void update( void ){
-		// Handle events on queue
-		while( SDL_PollEvent(&mSdlEvent) ){
-			// Handling explicit exit request
-			if( SDL_QuitRequested() == SDL_TRUE ){
-				std::cout << "Explicit quit requested, getting out of main loop...\n";
-				mGameRunning = false;
-			}
-			
-			mGameWindow.handleEvent( mSdlEvent, mGameRenderer.getRenderer() );
-			Command* inputCmd = mInputHandler.handleInput( mSdlEvent );
-			if( inputCmd ) inputCmd->execute();
-		}
-
-		// Draw on screen only when game isnt minimized
-		if( !mGameWindow.isMinimized() ) {
-			mGameRenderer.clearScreen();
-			renderGradient( mGameRenderer.getRenderer(), mGameWindow, xOff, 0, 0 );
-			mGameRenderer.renderPresent();
-		}
-	}
-
-	public:
 	std::string     mWindowTitle;
 	SDL_Event       mSdlEvent; 
 	
@@ -75,88 +54,67 @@ struct GameMain {
 	GameWindow      mGameWindow;
 	Renderer        mGameRenderer;
 		
-
-	// Commands
-	class QuitCommand: public Command {
-		public:
-		void init( bool* exitRef ){ mExitRef = exitRef; };
-
-		virtual void execute( void ) {
-			*mExitRef = false;
-		}
-
-		bool* mExitRef;
-	} mQuitCommand;
-
-	class ToggleFullScreenCommand: public Command {
-		public:
-		void init( GameWindow* gameWindowRef ){
-			mGameWindowRef = gameWindowRef;
-		}
-
-		virtual void execute( void ){
-			std::cout << "Entering fullscreen...\n";
-			mGameWindowRef->setFullScreen();
-		}
-
-		GameWindow* mGameWindowRef;
-	} mToggleFullScreenCommand;
-	
+	QuitCommand     mQuitCommand;
 	InputHandler    mInputHandler;
-
-
-	
-	// Temporary test classes used to test input latency, remove asap
-	// Things like these should be implemented through GameObjects
-	class ShiftGradientXPlusCmd: public Command {
-		public:
-		ShiftGradientXPlusCmd() { xpOff = nullptr; }
-
-		virtual void execute( void ) {
-			std::cout << "Moving right...\n";
-			if( xpOff ) *xpOff += 1;
-			else SDL_assert( 0 &&
-				"Warning! xpOff points to a null pointer" &&
-				"Did you forget to call init() before calling execute()?"
-			);
-		}
-		
-		void init( int* ip ){
-			SDL_assert( ip && "init() called with null ptr" );
-			xpOff = ip;
-		}
-
-		private:
-		int *xpOff;
-	} mShiftGradientXPlusCmd;
-	int xOff; // more test variables
-	
 };
 
-void GameMain_init( GameMain* gameMain ) {
+void GameMain_ctor(GameMain* gameMain){
 	// Game systems
 	gameMain->mGameRunning = true;
 	gameMain->mGameWindow.init(gameMain->mWindowTitle, 800, 600);
-	gameMain->mGameRenderer.init(gameMain->mGameWindow.getWindow(), SDL_RENDERER_SOFTWARE);
+	gameMain->mGameRenderer
+		.init(gameMain->mGameWindow.getWindow(), SDL_RENDERER_SOFTWARE);
 	
 	// Game commands
-	gameMain->mQuitCommand             .init(&gameMain->mGameRunning);
-	gameMain->mToggleFullScreenCommand .init(&gameMain->mGameWindow);
+	gameMain->mQuitCommand.ctor(&gameMain->mGameRunning);
 
 	// The input handler
-	gameMain->mInputHandler.init();//conv ctor
+	InputHandler_ctor(&gameMain->mInputHandler);
 
-	gameMain->mWindowTitle = "Hello world";
-	gameMain->mGameRunning = true;
+	gameMain->mWindowTitle="Hello world";
+	gameMain->mGameRunning=true;
 		
 	// Hook up commands to the input handler
-	gameMain->mInputHandler.assignCommandToButton(SDLK_ESCAPE,&gameMain->mQuitCommand); 
-	gameMain->mInputHandler.assignCommandToButton(SDLK_F12,&gameMain->mToggleFullScreenCommand );
-	
-	// test
-	gameMain->mShiftGradientXPlusCmd.init( &gameMain->xOff );
-	gameMain->mInputHandler.assignCommandToButton( SDLK_d, &gameMain->mShiftGradientXPlusCmd );
-	//
+	InputHandler_assignCommandToButton(
+		&gameMain->mInputHandler,
+		SDLK_ESCAPE,&gameMain->mQuitCommand); 
+}
+
+void GameMain_dtor(GameMain* gameMain){
+	printf("GameMain destructor called\n");
+	gameMain->mGameWindow.free();
+	SDL_Quit();
+}
+
+// This is to run every frame
+void GameMain_update(GameMain* gm){
+	// Handle events on queue
+	while(SDL_PollEvent(&gm->mSdlEvent)){
+		// Handling explicit exit request
+		if(SDL_QuitRequested()==SDL_TRUE){
+			printf(
+			"Explicit quit requested, "
+			"getting out of main loop...\n");
+			gm->mGameRunning=false;
+		}
+		
+		gm->mGameWindow.handleEvent
+			(gm->mSdlEvent,gm->mGameRenderer.getRenderer());
+		Command* inputCmd=InputHandler_handleInput
+			(&gm->mInputHandler,gm->mSdlEvent);
+		if(inputCmd)inputCmd->execute();
 	}
 
+	// Draw on screen only when game isnt minimized
+	if( !gm->mGameWindow.isMinimized() ) {
+		gm->mGameRenderer.clearScreen();
+		renderGradient(
+			gm->mGameRenderer.getRenderer(),
+			gm->mGameWindow,
+			0, 0, 0 );
+		gm->mGameRenderer.renderPresent();
+	}
+}
+
+bool GameMain_isGameRunning(GameMain* gm){return gm->mGameRunning;}
 #endif

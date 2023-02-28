@@ -5,15 +5,9 @@
 #include "Command.hpp"
 #include "GameObject.hpp"
 
-// All global vars are tests; remove from production code once
-// prototyping finishes
-class NullCommand : public Command {
-	virtual void execute(void){ /*std::cout << "NullCommand::execute() called\n";*/ }
-} g_nullCommand;
+// Note: To avoid segfaults make sure the Command* callbacks actually point to valid data
 
-// Note: To avoid segfaults make sure the Command* pointers actually point to valid data
-
-/*
+/* DEPRECATED ADVICE: MODIFY ASAP
  * To add a button to the class, do the following:
  * - Create a mButton variable representing a key
  * - Initialize this variable in the constructor
@@ -24,36 +18,24 @@ class NullCommand : public Command {
  */
 class InputHandler {
 	public:
-	void init(){
-		mButtonNull  = &g_nullCommand ;
-		mButtonEsc   = mButtonNull ;
-		mButtonF12   = mButtonNull ;
-		mButtonW     = mButtonNull ;
-		mButtonS     = mButtonNull ;
-		mButtonA     = mButtonNull ;
-		mButtonD     = mButtonNull ;
-		mButtonSpace = mButtonNull ;
-	}
+	//void init(){mButtonEsc=NULL;}
 
-	// Note: Add SDL_KeyboardEvent to allow keydown events
-	Command* handleInput( SDL_Event );
+	//Command* handleInput(SDL_Event);
 
-	// Assigns a SDLK_Keycode to one of the private buttons
-	void assignCommandToButton( SDL_Keycode, Command* );
 
 	// The buttons supported by the game
-	private:
-	Command* mButtonNull;
+	public:
 	Command* mButtonEsc;
-	Command* mButtonF12;
-	Command* mButtonW;
-	Command* mButtonS;
-	Command* mButtonA;
-	Command* mButtonD;
-	Command* mButtonSpace;
+	//void (*quitFunctionCallback)(void); //cdcel.org
 };
 
-Command* InputHandler::handleInput( SDL_Event e ){
+void InputHandler_ctor(InputHandler* ih){
+	if(ih)ih->mButtonEsc=NULL;
+}
+
+Command* InputHandler_handleInput(InputHandler* ih, SDL_Event e){
+	/*
+	// Note: Add SDL_KeyboardEvent to allow keydown events
 	// Continous response keys
 	SDL_PumpEvents();
 	const Uint8* sdlKeyState = SDL_GetKeyboardState(NULL);
@@ -65,38 +47,37 @@ Command* InputHandler::handleInput( SDL_Event e ){
 	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_S, mButtonS );
 	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_A, mButtonA );
 	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_D, mButtonD );
-	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_SPACE, mButtonSpace );
+	HANDLE_CONTINIOUS_INPUT( sdlKeyState, SDL_SCANCODE_SPACE, mButtonSpace);
 	
-	#undef HANDLE_CONTINIOUS_INPUT		
+	#undef HANDLE_CONTINIOUS_INPUT
+	*/
 
 
 	// Single press key	
-	#define HANDLE_SINGLEPRESS_INPUT( KEYCODE, RETCMD ) case KEYCODE: return RETCMD; break;
-	
-	if( e.type == SDL_KEYDOWN ){
-		switch( e.key.keysym.sym ){
-			HANDLE_SINGLEPRESS_INPUT( SDLK_ESCAPE, mButtonEsc )
-			HANDLE_SINGLEPRESS_INPUT( SDLK_F12, mButtonF12 )
-			default: { return mButtonNull; } break;
+	#define HANDLE_SINGLEPRESS_INPUT( KEYCODE, RETCMD )\
+		 case KEYCODE: return RETCMD; break;
+	if(e.type==SDL_KEYDOWN){
+		switch(e.key.keysym.sym){
+			HANDLE_SINGLEPRESS_INPUT(SDLK_ESCAPE,ih->mButtonEsc)
+			default: {return NULL;} break;
 	}}
-	
 	#undef HANDLE_SINGLEPRESS_INPUT
 
-	return mButtonNull;
+	return NULL;
 }
 
-void InputHandler::assignCommandToButton( SDL_Keycode keyCode, Command* button ){
-	#define ASSIGN_CMD_TO_BUTTON( KEYCODE, BUTTON ) case KEYCODE: { BUTTON = button; } break;
+// Assigns a SDLK_Keycode to one of the private buttons
+void InputHandler_assignCommandToButton(
+	InputHandler* ih,
+	SDL_Keycode keyCode,
+	Command* button
+){
+	#define ASSIGN_CMD_TO_BUTTON( KEYCODE, BUTTON )\
+		case KEYCODE: { ih->BUTTON = button; } break;
 
 	switch( keyCode ) {
 		ASSIGN_CMD_TO_BUTTON( SDLK_ESCAPE, mButtonEsc )
-		ASSIGN_CMD_TO_BUTTON( SDLK_F12, mButtonF12 )
-		ASSIGN_CMD_TO_BUTTON( SDLK_w, mButtonW )
-		ASSIGN_CMD_TO_BUTTON( SDLK_s, mButtonS )
-		ASSIGN_CMD_TO_BUTTON( SDLK_a, mButtonA )
-		ASSIGN_CMD_TO_BUTTON( SDLK_d, mButtonD )
-		ASSIGN_CMD_TO_BUTTON( SDLK_SPACE, mButtonSpace )
-		//default: { mButtonNull = button; } break;
+		default: /*{ mButtonNull = button; }*/ break;
 	}
 
 	#undef ASSIGN_CMD_TO_BUTTON

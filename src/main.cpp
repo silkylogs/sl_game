@@ -5,11 +5,12 @@
 
 int main( void ){
 	GameMain gs;
-	GameMain_init(&gs);
-	while( gs.isGameRunning() ){
-		gs.update();
+	GameMain_ctor(&gs);
+	while( GameMain_isGameRunning(&gs) ){
+		GameMain_update(&gs);
 	}
 
+	GameMain_dtor(&gs);
 	return 0;
 }
 
