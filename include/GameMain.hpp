@@ -47,6 +47,10 @@ class QuitCommand: public Command {
 	bool* mExitRef;
 };
 
+void quitFunctionCallback(void){
+	printf("Hello from quitFunctionCallback\n");
+}
+
 struct GameMain {
 	std::string     mWindowTitle;
 	SDL_Event       mSdlEvent; 
@@ -64,6 +68,10 @@ struct GameMain {
 
 void GameMain_ctor(GameMain* gameMain){
 	InputHandler2_ctor(&gameMain->mInputHandler2);
+	InputHandler2_assignCallbackToButton(
+		&gameMain->mInputHandler2,
+		SDLK_ESCAPE, &quitFunctionCallback
+	);
 
 	// Game systems
 	gameMain->mGameRunning = true;
@@ -109,6 +117,11 @@ void GameMain_update(GameMain* gm){
 		Command* inputCmd=InputHandler_handleInput// part of cmd
 			(&gm->mInputHandler,gm->mSdlEvent);
 		if(inputCmd)inputCmd->execute();// part of cmd
+
+		Command2* inputCmd2 = InputHandler2_handleInput(
+			&gm->mInputHandler2, gm->mSdlEvent
+		);
+		if(inputCmd2) inputCmd2();
 	}
 
 	// Draw on screen only when game isnt minimized
