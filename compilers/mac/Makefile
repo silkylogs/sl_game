@@ -6,11 +6,17 @@ INCLUDEDIR = include
 LIBDIR = lib/mac/
 SOURCEDIR = src
 BUILDIR = build
-BUILDFLAGS := -Wall -std=c++11
+BUILDFLAGS := -Wall -std=c++98
 LINKFLAGS := -lSDL2
 
 all:
-	g++ -o $(BUILDIR)/game -I$(INCLUDEDIR) -L$(LIBDIR) $(SOURCEDIR)/*.cpp $(BUILDFLAGS) $(LINKFLAGS)
+	g++	-o $(BUILDIR)/game \
+		-I$(INCLUDEDIR) \
+		-L$(LIBDIR) \
+		$(SOURCEDIR)/*.cpp \
+		$(SOURCEDIR)/*.c \
+		$(BUILDFLAGS) \
+		$(LINKFLAGS)
 
 clean:
 	rm -r build/*

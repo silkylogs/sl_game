@@ -10,7 +10,6 @@
 #include <SDL2/SDL.h>
 
 #include "GameWindow.hpp"
-#include "InputHandler.hpp" // deprecated
 #include "InputHandler2.h"
 #include "Renderer.hpp"
 
@@ -35,22 +34,6 @@ void renderGradient(
 			SDL_RenderDrawPoint( rend, x, y );
 }}}
 
-// Commands
-class QuitCommand: public Command {
-	public:
-	void ctor( bool* exitRef ){ mExitRef = exitRef; };
-
-	virtual void execute( void ) {
-		*mExitRef = false;
-	}
-
-	bool* mExitRef;
-};
-
-void quitFunctionCallback(void){
-	printf("Hello from quitFunctionCallback\n");
-}
-
 struct GameMain {
 	std::string     mWindowTitle;
 	SDL_Event       mSdlEvent; 
@@ -58,40 +41,39 @@ struct GameMain {
 	bool            mGameRunning;
 	GameWindow      mGameWindow;
 	Renderer        mGameRenderer;
-		
-	QuitCommand     mQuitCommand; // Part of deprecated command, modify
-	Command2*       mQuitCommand2;
-	
-	InputHandler    mInputHandler;// part of cmd
 	InputHandler2   mInputHandler2;
 };
 
-void GameMain_ctor(GameMain* gameMain){
-	InputHandler2_ctor(&gameMain->mInputHandler2);
-	InputHandler2_assignCallbackToButton(
-		&gameMain->mInputHandler2,
-		SDLK_ESCAPE, &quitFunctionCallback
-	);
+void exampleQuitCallback(void* gameMainPtr){
+	GameMain* gmPtr = (GameMain*)gameMainPtr;
+	if(gmPtr){
+		gmPtr->mGameRunning = false;
+	}
+}
 
+void GameMain_ctor(GameMain* gameMain){
 	// Game systems
 	gameMain->mGameRunning = true;
-	gameMain->mGameWindow.init(gameMain->mWindowTitle, 800, 600);
+	GameWindow_ctor(
+		&gameMain->mGameWindow,
+		gameMain->mWindowTitle,
+		800, 600
+	);
 	gameMain->mGameRenderer
 		.init(gameMain->mGameWindow.getWindow(), SDL_RENDERER_SOFTWARE);
 	
-	// Game commands
-	gameMain->mQuitCommand.ctor(&gameMain->mGameRunning);//part of cmd
-
 	// The input handler
-	InputHandler_ctor(&gameMain->mInputHandler);//part of cmd
+	InputHandler2_ctor(&gameMain->mInputHandler2);
 
 	gameMain->mWindowTitle="Hello world";
 	gameMain->mGameRunning=true;
 		
 	// Hook up commands to the input handler
-	InputHandler_assignCommandToButton( // part of cmd
-		&gameMain->mInputHandler,
-		SDLK_ESCAPE,&gameMain->mQuitCommand); 
+	InputHandler2_assignCallbackToButton(
+		&gameMain->mInputHandler2,
+		SDLK_ESCAPE,
+		&exampleQuitCallback
+	);
 }
 
 void GameMain_dtor(GameMain* gameMain){
@@ -112,16 +94,16 @@ void GameMain_update(GameMain* gm){
 			gm->mGameRunning=false;
 		}
 		
-		gm->mGameWindow.handleEvent
-			(gm->mSdlEvent,gm->mGameRenderer.getRenderer());
-		Command* inputCmd=InputHandler_handleInput// part of cmd
-			(&gm->mInputHandler,gm->mSdlEvent);
-		if(inputCmd)inputCmd->execute();// part of cmd
-
-		Command2* inputCmd2 = InputHandler2_handleInput(
+		GameWindow_handleWindowEvents(
+			&gm->mGameWindow,
+			gm->mSdlEvent,
+			gm->mGameRenderer.getRenderer()
+		);
+		
+		Command2* c2 = InputHandler2_handleInput(
 			&gm->mInputHandler2, gm->mSdlEvent
 		);
-		if(inputCmd2) inputCmd2();
+		if(c2) c2(gm);
 	}
 
 	// Draw on screen only when game isnt minimized
@@ -135,5 +117,8 @@ void GameMain_update(GameMain* gm){
 	}
 }
 
-bool GameMain_isGameRunning(GameMain* gm){return gm->mGameRunning;}
+bool GameMain_isGameRunning(GameMain* gm){
+	return gm->mGameRunning;
+}
+#undef WARNING_MACRO
 #endif
