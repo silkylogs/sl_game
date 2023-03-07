@@ -1,53 +1,15 @@
-#ifndef GAMEWINDOW_HEADER_INCLUDED
-#define GAMEWINDOW_HEADER_INCLUDED
+#include "GameWindow.h"
 
-#include <SDL2/SDL.h>
-// Prints a warning to stderr in the form
-// <filename>:<linenumber>:<functionName>(): <warningLevel>: <moreDetails>
-#define WARNING_MACRO(WLEVEL,WSTRING)\
-	fprintf(stderr,\
-		"%s:%d:%s(): %s: %s\n",\
-		__FILE__, __LINE__, __func__,\
-		WLEVEL, WSTRING);
-
-// A more robust wrapper for the game window
-struct GameWindow {
-	// Window data
-	SDL_Window* mWindow;
-	
-	// Window dimensions
-	int mWidth;
-	int mHeight;
-
-	// Window focii
-	bool mMouseFocus;
-	bool mKeyboardFocus;
-	bool mFullScreen;
-	bool mMinimized;
-
-	// Handles window events
-	//void handleEvent( SDL_Event& e, SDL_Renderer* renderer );
-
-	// Toggles full screen
-	void setFullScreen();
-
-	// Manual destructor
-	void free(){
-		SDL_DestroyWindow( mWindow );
-	}
-	
-	// Getters
-	int  getWidth()         { return mWidth; }
-	int  getHeight()        { return mHeight; }
-	bool hasMouseFocus()    { return mMouseFocus; }
-	bool hasKeyboardFocus() { return mKeyboardFocus; }
-	bool isMinimized()      { return mMinimized; }
-	SDL_Window* getWindow() { return mWindow; }
-};
+int  GameWindow_getWidth        (GameWindow* gm) { return gm->mWidth; }
+int  GameWindow_getHeight       (GameWindow* gm) { return gm->mHeight; }
+bool GameWindow_isMinimized     (GameWindow* gm) { return gm->mMinimized; }
+bool GameWindow_hasMouseFocus   (GameWindow* gm) { return gm->mMouseFocus; }
+bool GameWindow_hasKeyboardFocus(GameWindow* gm) { return gm->mKeyboardFocus; }
+SDL_Window* GameWindow_getWindow(GameWindow* gm) { return gm->mWindow; }
 
 void GameWindow_ctor( 
 	GameWindow* gameWindow,
-	std::string& windowTitle,
+	char* windowTitle,
 	int wWidth, int wHeight
 ){
 	if(!gameWindow){ 
@@ -55,14 +17,15 @@ void GameWindow_ctor(
 		return;
 	}
 
-	gameWindow->mHeight        = wHeight;
-	gameWindow->mWidth         = wWidth;
 	gameWindow->mMouseFocus    = false ;
 	gameWindow->mKeyboardFocus = false ;
 	gameWindow->mFullScreen    = false ;
 	gameWindow->mMinimized     = false ;
 	gameWindow->mWindow        = NULL  ;
 
+	// Validate inputted width and height
+	gameWindow->mHeight = wHeight;
+	gameWindow->mWidth  = wWidth;
 	if( gameWindow->mWidth <= 0 ) {
 		fprintf(stderr,
 			"%s:%d:%s():"
@@ -70,9 +33,8 @@ void GameWindow_ctor(
 			"Continuting with a safer width...\n",
 			__FILE__, __LINE__, __func__, gameWindow->mWidth
 		);
-		gameWindow->mWidth = 300;
+		gameWindow->mWidth = 800;
 	}
-	
 	if( gameWindow->mHeight <= 0 ) {
 		fprintf(stderr,
 			"%s:%d:%s():"
@@ -80,21 +42,35 @@ void GameWindow_ctor(
 			"Continuting with a safer height...\n",
 			__FILE__, __LINE__, __func__, gameWindow->mHeight
 		);
-		gameWindow->mHeight = 200;
+		gameWindow->mHeight = 600;
 	}
 	
-	gameWindow->mWindow = SDL_CreateWindow(
-		windowTitle.c_str(),
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		gameWindow->mWidth, gameWindow->mHeight,
-		SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE
-	);
+	if( !windowTitle ) { 
+		gameWindow->mWindow = SDL_CreateWindow(
+			windowTitle,
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			gameWindow->mWidth, gameWindow->mHeight,
+			SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE
+		);
+	}
+	else{
+		gameWindow->mWindow = SDL_CreateWindow(
+			"No window title provided",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			gameWindow->mWidth, gameWindow->mHeight,
+			SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE
+		);
+	}
 	
 	SDL_assert(
 		gameWindow->mWindow &&
 		"Unable to create game window. "
 		"Continuing will result in a crash."
 	);
+}
+
+void GameWindow_dtor( GameWindow* gm ){
+	SDL_DestroyWindow( gm->mWindow );
 }
 
 void GameWindow_handleWindowEvents(
@@ -148,16 +124,14 @@ void GameWindow_handleWindowEvents(
 	}
 }
 
-void GameWindow::setFullScreen(){
-	std::cout << "setFullScreen() called\n";
-	if( mFullScreen ){
-		SDL_SetWindowFullscreen( mWindow, SDL_FALSE );
-		mFullScreen = false;
+void GameWindow_setFullScreen( GameWindow* gw ){
+	//std::cout << "setFullScreen() called\n";
+	if( gw->mFullScreen ){
+		SDL_SetWindowFullscreen( gw->mWindow, SDL_FALSE );
+		gw->mFullScreen = false;
 	} else {
-		SDL_SetWindowFullscreen( mWindow, SDL_TRUE );
-		mFullScreen = true;
-		mMinimized = true;
+		SDL_SetWindowFullscreen( gw->mWindow, SDL_TRUE );
+		gw->mFullScreen = true;
+		gw->mMinimized = true;
 	}
 }
-
-#endif
