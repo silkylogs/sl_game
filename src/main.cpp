@@ -3,7 +3,7 @@
 
 #include "GameMain.hpp"
 
-int main( void ){
+int main( int argc, char** argv ){
 	GameMain gs;
 	GameMain_ctor(&gs);
 	while( GameMain_isGameRunning(&gs) ){
