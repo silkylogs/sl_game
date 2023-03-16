@@ -1,7 +1,6 @@
-#include <iostream>
 #include <SDL2/SDL.h>
 
-#include "GameMain.hpp"
+#include "GameMain.h"
 
 int main( int argc, char** argv ){
 	GameMain gs;

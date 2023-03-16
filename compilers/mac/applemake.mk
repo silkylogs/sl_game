@@ -2,18 +2,18 @@
 # Start the build process from the project root directory with
 # `make -f compilers/mac/applemake.mk`
 
+CC := cc
 INCLUDEDIR = include
 LIBDIR = lib/mac/
 SOURCEDIR = src
 BUILDIR = build
-BUILDFLAGS := -Wall -std=c++98
+BUILDFLAGS := -Wall -std=c99
 LINKFLAGS := -lSDL2
 
 all:
-	g++	-o $(BUILDIR)/game \
+	$(CC)	-o $(BUILDIR)/game \
 		-I$(INCLUDEDIR) \
 		-L$(LIBDIR) \
-		$(SOURCEDIR)/*.cpp \
 		$(SOURCEDIR)/*.c \
 		$(BUILDFLAGS) \
 		$(LINKFLAGS)

@@ -1,12 +1,8 @@
 #ifndef GAME_MAIN_HEADER_INCLUDED
 #define GAME_MAIN_HEADER_INCLUDED
 
-// Todo: convert project to C (ANSI if possible)
 // Todo: make input async via multithreading
 
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <SDL2/SDL.h>
 
 #include "GameWindow.h"
@@ -38,7 +34,7 @@ void renderGradient(
 			SDL_RenderDrawPoint( rend, x, y );
 }}}
 
-struct GameMain {
+typedef struct GameMain {
 	char*           mWindowTitle;
 	SDL_Event       mSdlEvent; 
 	
@@ -46,7 +42,7 @@ struct GameMain {
 	GameWindow      mGameWindow;
 	Renderer        mGameRenderer;
 	InputHandler2   mInputHandler2;
-};
+} GameMain;
 
 void exampleQuitCallback(void* gameMainPtr){
 	GameMain* gmPtr = (GameMain*)gameMainPtr;
@@ -84,7 +80,6 @@ void GameMain_ctor(GameMain* gameMain){
 
 void GameMain_dtor(GameMain* gameMain){
 	printf("GameMain destructor called\n");
-	//gameMain->mGameWindow.free();
 	GameWindow_dtor(&gameMain->mGameWindow);
 	SDL_Quit();
 }
@@ -97,8 +92,7 @@ void GameMain_update(GameMain* gm){
 	
 		// Handling explicit exit request
 		if( SDL_QuitRequested() == SDL_TRUE ){
-			printf(
-				"Explicit quit requested, "
+			printf(	"Explicit quit requested, "
 				"getting out of main loop...\n");
 			gm->mGameRunning=false;
 		}

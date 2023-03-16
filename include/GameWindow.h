@@ -13,7 +13,7 @@
 		WLEVEL, WSTRING);
 
 // A more robust wrapper for the game window
-struct GameWindow {
+typedef struct GameWindow {
 	// Window data
 	SDL_Window* mWindow;
 	
@@ -26,7 +26,7 @@ struct GameWindow {
 	bool mKeyboardFocus;
 	bool mFullScreen;
 	bool mMinimized;
-};
+} GameWindow;
 
 int  GameWindow_getWidth        (GameWindow* gm);
 int  GameWindow_getHeight       (GameWindow* gm);
