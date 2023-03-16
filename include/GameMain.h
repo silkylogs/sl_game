@@ -9,6 +9,18 @@
 #include "InputHandler2.h"
 #include "Renderer.h"
 
+typedef struct GameMain {
+	const char*     mWindowTitle;
+	SDL_Event       mSdlEvent; 
+	
+	bool            mGameRunning;
+	GameWindow      mGameWindow;
+	Renderer        mGameRenderer;
+	InputHandler2   mInputHandler2;
+} GameMain;
+
+const char* gWindowTitle = "Hello world";
+
 // Render the graphics "hello world"
 void renderGradient(
 	SDL_Renderer* rend,
@@ -34,17 +46,7 @@ void renderGradient(
 			SDL_RenderDrawPoint( rend, x, y );
 }}}
 
-typedef struct GameMain {
-	char*           mWindowTitle;
-	SDL_Event       mSdlEvent; 
-	
-	bool            mGameRunning;
-	GameWindow      mGameWindow;
-	Renderer        mGameRenderer;
-	InputHandler2   mInputHandler2;
-} GameMain;
-
-void exampleQuitCallback(void* gameMainPtr){
+void quitCallback(void* gameMainPtr){
 	GameMain* gmPtr = (GameMain*)gameMainPtr;
 	if(gmPtr){
 		gmPtr->mGameRunning = false;
@@ -53,7 +55,7 @@ void exampleQuitCallback(void* gameMainPtr){
 
 void GameMain_ctor(GameMain* gameMain){
 	gameMain->mGameRunning = true;
-	gameMain->mWindowTitle = "Hello world";
+	gameMain->mWindowTitle = gWindowTitle;
 	
 	GameWindow_ctor(
 		&gameMain->mGameWindow,
@@ -74,7 +76,7 @@ void GameMain_ctor(GameMain* gameMain){
 	InputHandler2_assignCallbackToButton(
 		&gameMain->mInputHandler2,
 		SDLK_ESCAPE,
-		&exampleQuitCallback
+		&quitCallback
 	);
 }
 

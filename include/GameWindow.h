@@ -37,7 +37,7 @@ SDL_Window* GameWindow_getWindow(GameWindow* gm);
 
 void GameWindow_ctor( 
 	GameWindow* gameWindow,
-	char* windowTitle,
+	const char* windowTitle,
 	int wWidth, int wHeight
 );
 

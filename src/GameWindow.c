@@ -9,9 +9,10 @@ SDL_Window* GameWindow_getWindow(GameWindow* gm) { return gm->mWindow; }
 
 void GameWindow_ctor( 
 	GameWindow* gameWindow,
-	char* windowTitle,
+	const char* windowTitle,
 	int wWidth, int wHeight
 ){
+	
 	if(!gameWindow){ 
 		WARNING_MACRO("Warning", "Null argument");
 		return;
@@ -45,7 +46,7 @@ void GameWindow_ctor(
 		gameWindow->mHeight = 600;
 	}
 	
-	if( !windowTitle ) { 
+	if( windowTitle ) { 
 		gameWindow->mWindow = SDL_CreateWindow(
 			windowTitle,
 			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
